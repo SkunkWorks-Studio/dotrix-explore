@@ -17,6 +17,7 @@ const SCROLL_SPEED: f32 = 60.0;
 
 struct MainState {
 	name: String,
+	positions: Vec<[f32; 3]>,
 }
 
 struct PauseState {
@@ -62,13 +63,9 @@ fn startup(mut assets: Mut<Assets>, mut input: Mut<Input>, mut state: Mut<State>
 	camera.target.y = -8.5;
 	camera.xz_angle = 1.2;
 
-	state.push(MainState {
-		name: String::from("Main State"),
-	});
-
 	init_input(&mut input);
 	init_skybox(&mut assets, &mut world);
-	init_terrain(&mut assets, &mut world);
+	init_terrain(&mut assets, &mut world, &mut state);
 	init_lights(&mut world);
 }
 
@@ -86,7 +83,7 @@ fn init_input(input: &mut Input) {
 		]);
 }
 
-fn init_terrain(assets: &mut Assets, world: &mut World) {
+fn init_terrain(assets: &mut Assets, world: &mut World, state: &mut State) {
 	// Generate terrain mesh like this:
 	//   0   1
 	// 0 +---+---+---> x
@@ -97,7 +94,7 @@ fn init_terrain(assets: &mut Assets, world: &mut World) {
 	//   |
 	//   z
 
-	let size = 128;
+	let size = 5;
 	let mut positions = Vec::with_capacity(3 * 2 * size * size);
 	let mut uvs = Vec::new();
 	for x in 0..size {
@@ -151,6 +148,11 @@ fn init_terrain(assets: &mut Assets, world: &mut World) {
 		})
 		.some(),
 	);
+
+	state.push(MainState {
+		name: String::from("Main State"),
+		positions: positions,
+	});
 }
 
 fn init_lights(world: &mut World) {
@@ -273,7 +275,16 @@ fn ui_main(mut state: Mut<State>, input: Const<Input>, overlay: Const<Overlay>, 
 	egui::Area::new("Camera")
 		.fixed_pos(egui::pos2(16.0, 48.0))
 		.show(&egui_overlay.ctx, |ui| {
-			ui.colored_label(DEBUG_YELLOW, format!("X,Y,Z: [{:.1},{:.1},{:.1}]", camera.target.x, camera.target.y, camera.target.z));
+			ui.colored_label(DEBUG_YELLOW, format!("Camera X,Y,Z: [{:.1},{:.1},{:.1}]", camera.target.x, camera.target.y, camera.target.z));
+		});
+
+	let ms = main_state.clone();
+	egui::Area::new("Mouse")
+		.fixed_pos(egui::pos2(16.0, 64.0))
+		.show(&egui_overlay.ctx, |ui| {
+			let pos = input.mouse_position().unwrap();
+			let ms.positions.filter(|p| p.x );
+			ui.colored_label(DEBUG_YELLOW, format!("Mouse X,Y: [{:.1},{:.1}]", pos.x, pos.y));
 		});
 }
 
